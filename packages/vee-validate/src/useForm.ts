@@ -1096,8 +1096,8 @@ function useFormInitialValues<TValues extends GenericObject>(
   const originalInitialValues = ref<PartialDeep<TValues>>(deepCopy(values)) as Ref<PartialDeep<TValues>>;
 
   function setInitialValues(values: PartialDeep<TValues>, updateFields = false) {
-    initialValues.value = merge(deepCopy(initialValues.value) || {}, deepCopy(values));
-    originalInitialValues.value = merge(deepCopy(originalInitialValues.value) || {}, deepCopy(values));
+    initialValues.value = Object.assign(deepCopy(initialValues.value) || {}, deepCopy(values));
+    originalInitialValues.value = Object.assign(deepCopy(originalInitialValues.value) || {}, deepCopy(values));
 
     if (!updateFields) {
       return;
