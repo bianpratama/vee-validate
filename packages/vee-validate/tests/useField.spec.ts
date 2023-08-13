@@ -283,7 +283,7 @@ describe('useField()', () => {
       mountWithHoc({
         setup() {
           const { errorMessage, validate, value, setErrors } = useField('field', val =>
-            val ? true : REQUIRED_MESSAGE
+            val ? true : REQUIRED_MESSAGE,
           );
           validateFn = validate;
           // marks it as dirty/touched
@@ -452,7 +452,7 @@ describe('useField()', () => {
           } = useField(
             'field',
             [val => (val ? true : REQUIRED_MESSAGE), val => ((val as string)?.length >= 3 ? true : MIN_MESSAGE)],
-            { bails: false }
+            { bails: false },
           );
           const {
             value: value2,
@@ -462,7 +462,7 @@ describe('useField()', () => {
           } = useField(
             'field',
             [val => ((val as string)?.length >= 3 ? true : MIN_MESSAGE), val => (val ? true : REQUIRED_MESSAGE)],
-            { bails: false }
+            { bails: false },
           );
 
           return {
@@ -941,6 +941,32 @@ describe('useField()', () => {
     setValue(input, '');
     await flushPromises();
     expect(field.value.value).toBe('');
+  });
+
+  test('handleChange parses input[type=range] value', async () => {
+    let field!: FieldContext;
+
+    mountWithHoc({
+      setup() {
+        field = useField('field', undefined);
+        const { handleChange } = field;
+
+        return {
+          handleChange,
+        };
+      },
+      template: `<input type="range" min="0" max="1000" step="100" @change="handleChange" />`,
+    });
+
+    await flushPromises();
+    const input = document.querySelector('input') as HTMLInputElement;
+    setValue(input, '500');
+    await flushPromises();
+    expect(field.value.value).toBe(500);
+
+    setValue(input, '0');
+    await flushPromises();
+    expect(field.value.value).toBe(0);
   });
 
   test('a validator can return multiple messages', async () => {

@@ -1,5 +1,23 @@
 # Change Log
 
+## 4.11.1
+
+### Patch Changes
+
+- 5e23dcb9: fix: add support for parsing range inputs
+
+## 4.11.0
+
+### Minor Changes
+
+- 2d8143f9: feat: added composition setter functions
+
+## 4.10.9
+
+### Patch Changes
+
+- c02337f3: fix: correct the setErrors type to allow for string[]
+
 ## 4.10.8
 
 ### Patch Changes

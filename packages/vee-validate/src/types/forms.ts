@@ -1,5 +1,5 @@
 import { ComputedRef, Ref, MaybeRef, MaybeRefOrGetter } from 'vue';
-import { MapValuesPathsToRefs, GenericObject, MaybeArray, MaybePromise } from './common';
+import { MapValuesPathsToRefs, GenericObject, MaybeArray, MaybePromise, FlattenAndSetPathsType } from './common';
 import { FieldValidationMetaInfo } from '../../../shared';
 import { Path, PathValue } from './paths';
 import { PartialDeep } from 'type-fest';
@@ -20,6 +20,7 @@ export interface TypedSchema<TInput = any, TOutput = TInput> {
   cast?(values: Partial<TInput>): TInput;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type YupSchema<TValues = any> = {
   __isYupSchema__: boolean;
   validate(value: any, options: GenericObject): Promise<any>;
@@ -69,7 +70,7 @@ export type FieldValidator = (opts?: Partial<ValidationOptions>) => Promise<Vali
 
 export interface PathStateConfig {
   bails: boolean;
-  label: MaybeRef<string | undefined>;
+  label: MaybeRefOrGetter<string | undefined>;
   type: InputType;
   validate: FieldValidator;
 }
@@ -127,12 +128,12 @@ export interface PrivateFieldContext<TValue = unknown> {
   meta: FieldMeta<TValue>;
   errors: Ref<string[]>;
   errorMessage: Ref<string | undefined>;
-  label?: MaybeRef<string | undefined>;
+  label?: MaybeRefOrGetter<string | undefined>;
   type?: string;
   bails?: boolean;
-  keepValueOnUnmount?: MaybeRef<boolean | undefined>;
-  checkedValue?: MaybeRef<TValue>;
-  uncheckedValue?: MaybeRef<TValue>;
+  keepValueOnUnmount?: MaybeRefOrGetter<boolean | undefined>;
+  checkedValue?: MaybeRefOrGetter<TValue>;
+  uncheckedValue?: MaybeRefOrGetter<TValue>;
   checked?: Ref<boolean>;
   resetField(state?: Partial<FieldState<TValue>>): void;
   handleReset(): void;
@@ -142,7 +143,7 @@ export interface PrivateFieldContext<TValue = unknown> {
   setState(state: Partial<FieldState<TValue>>): void;
   setTouched(isTouched: boolean): void;
   setErrors(message: string | string[]): void;
-  setValue(value: TValue): void;
+  setValue(value: TValue, shouldValidate?: boolean): void;
 }
 
 export type FieldContext<TValue = unknown> = Omit<PrivateFieldContext<TValue>, 'id' | 'instances'>;
@@ -162,13 +163,14 @@ export interface FormState<TValues> {
 export type FormErrors<TValues extends GenericObject> = Partial<Record<Path<TValues>, string | undefined>>;
 export type FormErrorBag<TValues extends GenericObject> = Partial<Record<Path<TValues>, string[]>>;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface FormActions<TValues extends GenericObject, TOutput = TValues> {
   setFieldValue<T extends Path<TValues>>(field: T, value: PathValue<TValues, T>, shouldValidate?: boolean): void;
   setFieldError(field: Path<TValues>, message: string | string[] | undefined): void;
-  setErrors(fields: FormErrors<TValues>): void;
+  setErrors(fields: Partial<FlattenAndSetPathsType<TValues, string | string[] | undefined>>): void;
   setValues(fields: PartialDeep<TValues>, shouldValidate?: boolean): void;
   setFieldTouched(field: Path<TValues>, isTouched: boolean): void;
-  setTouched(fields: Partial<Record<Path<TValues>, boolean>>): void;
+  setTouched(fields: Partial<Record<Path<TValues>, boolean>> | boolean): void;
   resetForm(state?: Partial<FormState<TValues>>): void;
   resetField(field: Path<TValues>, state?: Partial<FieldState>): void;
 }
@@ -249,6 +251,7 @@ export interface PrivateFormContext<TValues extends GenericObject = GenericObjec
   markForUnmount(path: string): void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface BaseComponentBinds<TValue = unknown, TModel = 'modelValue'> {
   onBlur: () => void;
 }

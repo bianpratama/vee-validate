@@ -685,7 +685,15 @@ export function useForm<
   /**
    * Sets the touched meta state on multiple fields
    */
-  function setTouched(fields: Partial<FlattenAndSetPathsType<TValues, boolean>>) {
+  function setTouched(fields: Partial<FlattenAndSetPathsType<TValues, boolean>> | boolean) {
+    if (typeof fields === 'boolean') {
+      mutateAllPathState(state => {
+        state.touched = fields;
+      });
+
+      return;
+    }
+
     keysOf(fields).forEach(field => {
       setFieldTouched(field, !!fields[field]);
     });
@@ -796,7 +804,9 @@ export function useForm<
 
     const shouldWarn = !state && (opts?.warn ?? true);
     if (shouldWarn) {
-      warn(`field with path ${path} was not found`);
+      if (__DEV__) {
+        warn(`field with path ${path} was not found`);
+      }
     }
 
     return Promise.resolve({ errors: [], valid: true });
