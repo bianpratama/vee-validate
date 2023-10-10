@@ -351,6 +351,39 @@ describe('<Form />', () => {
     expect(submitMock).toHaveBeenCalledTimes(1);
   });
 
+  test('can be renderless with null', async () => {
+    const submitMock = vi.fn();
+    const wrapper = mountWithHoc({
+      template: `
+      <div>
+        <VForm :as="null" v-slot="{ errors, submitForm }">
+          <form @submit="submitForm">
+            <Field name="field" rules="required" />
+            <span id="error">{{ errors.field }}</span>
+
+            <button>Validate</button>
+          </form>
+        </VForm>
+      </div>
+    `,
+    });
+
+    const form = wrapper.$el.querySelector('form');
+    form.submit = submitMock;
+    const input = wrapper.$el.querySelector('input');
+    await flushPromises();
+
+    wrapper.$el.querySelector('button').click();
+    await flushPromises();
+    expect(submitMock).toHaveBeenCalledTimes(0);
+
+    setValue(input, '12');
+    wrapper.$el.querySelector('button').click();
+    await flushPromises();
+
+    expect(submitMock).toHaveBeenCalledTimes(1);
+  });
+
   test('validation schema with yup', async () => {
     const wrapper = mountWithHoc({
       setup() {
@@ -1274,9 +1307,9 @@ describe('<Form />', () => {
       },
       template: `
       <VForm :validation-schema="schema" v-slot="{ errors, values }">
-        <Field v-model="drinks" name="drink" type="checkbox" value="" /> Coffee
-        <Field v-model="drinks" name="drink" type="checkbox" value="Tea" /> Tea
-        <Field v-model="drinks" name="drink" type="checkbox" value="Coke" /> Coke
+        <Field v-model="drinks" name="drink" type="checkbox" value="" validateOnModelUpdate /> Coffee
+        <Field v-model="drinks" name="drink" type="checkbox" value="Tea" validateOnModelUpdate /> Tea
+        <Field v-model="drinks" name="drink" type="checkbox" value="Coke" validateOnModelUpdate /> Coke
 
         <span id="err">{{ errors.drink }}</span>
         <span id="values">{{ values.drink && values.drink.toString() }}</span>

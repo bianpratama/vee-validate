@@ -20,6 +20,12 @@ export interface TypedSchema<TInput = any, TOutput = TInput> {
   cast?(values: Partial<TInput>): TInput;
 }
 
+export type InferOutput<TSchema extends TypedSchema> = TSchema extends TypedSchema<any, infer TOutput>
+  ? TOutput
+  : never;
+
+export type InferInput<TSchema extends TypedSchema> = TSchema extends TypedSchema<infer TInput, any> ? TInput : never;
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type YupSchema<TValues = any> = {
   __isYupSchema__: boolean;
@@ -93,6 +99,7 @@ export interface PathState<TValue = unknown> {
   fieldsCount: number;
   __flags: {
     pendingUnmount: Record<string, boolean>;
+    pendingReset: boolean;
   };
   validate?: FieldValidator;
 }
@@ -163,6 +170,10 @@ export interface FormState<TValues> {
 export type FormErrors<TValues extends GenericObject> = Partial<Record<Path<TValues>, string | undefined>>;
 export type FormErrorBag<TValues extends GenericObject> = Partial<Record<Path<TValues>, string[]>>;
 
+export interface ResetFormOpts {
+  force: boolean;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface FormActions<TValues extends GenericObject, TOutput = TValues> {
   setFieldValue<T extends Path<TValues>>(field: T, value: PathValue<TValues, T>, shouldValidate?: boolean): void;
@@ -171,7 +182,7 @@ export interface FormActions<TValues extends GenericObject, TOutput = TValues> {
   setValues(fields: PartialDeep<TValues>, shouldValidate?: boolean): void;
   setFieldTouched(field: Path<TValues>, isTouched: boolean): void;
   setTouched(fields: Partial<Record<Path<TValues>, boolean>> | boolean): void;
-  resetForm(state?: Partial<FormState<TValues>>): void;
+  resetForm(state?: Partial<FormState<TValues>>, opts?: Partial<ResetFormOpts>): void;
   resetField(field: Path<TValues>, state?: Partial<FieldState>): void;
 }
 
@@ -249,32 +260,51 @@ export interface PrivateFormContext<TValues extends GenericObject = GenericObjec
   removePathState<TPath extends Path<TValues>>(path: TPath, id: number): void;
   unsetPathValue<TPath extends Path<TValues>>(path: TPath): void;
   markForUnmount(path: string): void;
+  isFieldTouched<TPath extends Path<TValues>>(path: TPath): boolean;
+  isFieldDirty<TPath extends Path<TValues>>(path: TPath): boolean;
+  isFieldValid<TPath extends Path<TValues>>(path: TPath): boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface BaseComponentBinds<TValue = unknown, TModel = 'modelValue'> {
+export interface ComponentModellessBinds {
   onBlur: () => void;
 }
+
+export type ComponentModelBinds<TValue = any, TModel extends string = 'modelValue'> = ComponentModellessBinds & {
+  [TKey in `onUpdate:${TModel}`]: (value: TValue) => void;
+};
+
+export type BaseComponentBinds<TValue = any, TModel extends string = 'modelValue'> = ComponentModelBinds<
+  TValue,
+  TModel
+> & {
+  [k in TModel]: TValue;
+};
 
 export type PublicPathState<TValue = unknown> = Omit<
   PathState<TValue>,
   'bails' | 'label' | 'multiple' | 'fieldsCount' | 'validate' | 'id' | 'type' | '__flags'
 >;
 
-export interface ComponentBindsConfig<TValue = unknown, TExtraProps extends GenericObject = GenericObject> {
+export interface ComponentBindsConfig<
+  TValue = unknown,
+  TExtraProps extends GenericObject = GenericObject,
+  TModel extends string = 'modelValue',
+> {
   mapProps: (state: PublicPathState<TValue>) => TExtraProps;
   validateOnBlur: boolean;
   validateOnModelUpdate: boolean;
-  model: string;
+  model: TModel;
 }
 
-export type LazyComponentBindsConfig<TValue = unknown, TExtraProps extends GenericObject = GenericObject> = (
-  state: PublicPathState<TValue>,
-) => Partial<{
+export type LazyComponentBindsConfig<
+  TValue = unknown,
+  TExtraProps extends GenericObject = GenericObject,
+  TModel extends string = 'modelValue',
+> = (state: PublicPathState<TValue>) => Partial<{
   props: TExtraProps;
   validateOnBlur: boolean;
   validateOnModelUpdate: boolean;
-  model: string;
+  model: TModel;
 }>;
 
 export interface BaseInputBinds<TValue = unknown> {
@@ -325,11 +355,12 @@ export interface FormContext<TValues extends GenericObject = GenericObject, TOut
   defineComponentBinds<
     TPath extends Path<TValues>,
     TValue = PathValue<TValues, TPath>,
+    TModel extends string = 'modelValue',
     TExtras extends GenericObject = GenericObject,
   >(
     path: MaybeRefOrGetter<TPath>,
-    config?: Partial<ComponentBindsConfig<TValue, TExtras>> | LazyComponentBindsConfig<TValue, TExtras>,
-  ): Ref<BaseComponentBinds<TValue> & TExtras>;
+    config?: Partial<ComponentBindsConfig<TValue, TExtras, TModel>> | LazyComponentBindsConfig<TValue, TExtras, TModel>,
+  ): Ref<BaseComponentBinds<TValue, TModel> & TExtras>;
   defineInputBinds<
     TPath extends Path<TValues>,
     TValue = PathValue<TValues, TPath>,

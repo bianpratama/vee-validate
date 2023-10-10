@@ -1,18 +1,18 @@
 {
-  "name": "@vee-validate/rules",
+  "name": "@vee-validate/joi",
   "version": "4.11.8",
-  "description": "Form Validation for Vue.js",
+  "description": "vee-validate integration with joi schema validation",
   "author": "Abdelrahman Awad <logaretm1@gmail.com>",
   "license": "MIT",
-  "module": "dist/vee-validate-rules.esm.js",
-  "unpkg": "dist/vee-validate-rules.js",
-  "main": "dist/vee-validate-rules.js",
-  "types": "dist/vee-validate-rules.d.ts",
-  "homepage": "https://vee-validate.logaretm.com/v4/guide/global-validators",
+  "module": "dist/vee-validate-joi.esm.js",
+  "unpkg": "dist/vee-validate-joi.js",
+  "main": "dist/vee-validate-joi.js",
+  "types": "dist/vee-validate-joi.d.ts",
+  "homepage": "https://vee-validate.logaretm.com/v4/integrations/joi-schema-validation/",
   "repository": {
     "url": "https://github.com/logaretm/vee-validate.git",
     "type": "git",
-    "directory": "packages/rules"
+    "directory": "packages/joi"
   },
   "sideEffects": false,
   "keywords": [
@@ -28,6 +28,8 @@
     "dist/*.d.ts"
   ],
   "dependencies": {
+    "joi": "17.10.2",
+    "type-fest": "^4.2.0",
     "vee-validate": "4.11.8"
   }
 }
